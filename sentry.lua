@@ -220,6 +220,75 @@ function CaptureEvent(name, spell)
 			return
 		end
 	end
+
+    if OpiumData then
+      local playerName = name;
+      local playerlc = string.lower(playerName);
+      
+      local guildName;
+      local guildlc;
+
+      local target;
+      if UnitName("target") == playerName then
+          target = "target"
+      elseif UnitName("mouseover") == playerName then
+          target = "mouseover"
+      end
+
+      if target then
+          guildName = GetGuildInfo(target);
+      end
+
+      if( target and OpiumData.config.alertsonlyonenemy ) then
+         if( UnitFactionGroup("player") == UnitFactionGroup(target) ) then
+	    return;
+	 end
+      end
+
+
+      if( guildName ) then
+         guildlc = string.gsub(string.lower(guildName), "%s", "_");
+      end
+
+      local kosp = OpiumData.kosPlayer[realmName][playerlc];
+      local kosg = OpiumData.kosGuild[realmName][guildlc];
+
+      if( playerlc ~= opiumLastAlert ) then
+         if(OpiumData.config.textalert ) then
+            if( kosp ) then
+	       if( kosp[OPIUM_INDEX_REASON] ) then
+                       UIErrorsFrame:AddMessage(playerName .. " " ..  
+		           Opium_GetKoSFlag(kosp[OPIUM_INDEX_FLAG]) .. ": " .. 
+		          kosp[OPIUM_INDEX_REASON],   1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME);
+
+	       else
+         	       UIErrorsFrame:AddMessage(playerName .. " " .. 
+		          Opium_GetKoSFlag(kosp[OPIUM_INDEX_FLAG]), 
+              	           1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME);
+	       end
+            elseif( kosg) then
+	       if( kosg[OPIUM_INDEX_REASON] ) then
+                  UIErrorsFrame:AddMessage(playerName .. " " .. OPIUM_TEXT_OF .. " " .. guildName .. 
+		                   " " .. Opium_GetKoSFlag(kosg[OPIUM_INDEX_FLAG]) 
+				   .. ": " .. kosg[OPIUM_INDEX_REASON], 
+                	           1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME);
+
+	       else
+                  UIErrorsFrame:AddMessage(playerName .. " " .. OPIUM_TEXT_OF .. " " .. guildName .. 
+		                  " " .. Opium_GetKoSFlag(kosg[OPIUM_INDEX_FLAG]), 
+                	           1.0, 1.0, 1.0, 1.0, UIERRORS_HOLD_TIME);
+
+  	       end
+            end
+	 end
+
+         if( OpiumData.config.soundalert and (kosp or kosg) ) then
+            PlaySound("AuctionWindowOpen");
+   	 end
+         opiumLastAlert = playerlc; 
+      end
+    end
+
 	if getn(ACTIVE_ENEMIES) < sentry_settings.size then
 		PlaySoundFile(getn(ACTIVE_ENEMIES) == 0 and [[Sound\Interface\TalentScreenOpen.wav]] or [[Sound\Interface\MouseOverTarget.wav]])
 		tinsert(ACTIVE_ENEMIES, name)
